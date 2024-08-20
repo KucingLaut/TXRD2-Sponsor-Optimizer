@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
     QLabel,
     QGroupBox
 )
-from PyQt5.QtGui import QFont
 
 row_headers = [
     "Takeoff",
@@ -84,7 +83,6 @@ class MainWindow(QMainWindow):
         # Init class member variables
         self.count = 0
         self.sponsor_flags = [0 for _ in range(40)]
-        self.checkboxes = []
 
         # Init window
         self.setWindowTitle("TXRD2 Sponsor Optimizer")
@@ -94,8 +92,8 @@ class MainWindow(QMainWindow):
         self.checkbox_grid = QGridLayout()
         for row in range(10):
             for col in range(4):
-                checkbox = QCheckBox(row_headers[col + row*4])
-                checkbox.stateChanged.connect(self.set_sponsor_flag)
+                checkbox = SponsorCheckBox(self, row_headers[col + row*4], col+row*4)
+                checkbox.stateChanged.connect(lambda state=checkbox, id=(col+row*4): self.set_sponsor_flag(state, id))
                 self.checkbox_grid.addWidget(checkbox, row, col)
 
         # init button
@@ -114,7 +112,6 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(self.checkbox_grid)
         main_layout.addWidget(self.button)
         main_layout.addLayout(self.textbox_grid)
-
 
         self.main_widget = QWidget()
         self.main_widget.setLayout(main_layout)
@@ -141,8 +138,8 @@ class MainWindow(QMainWindow):
         self.button.setDisabled(False)
         self.setWindowTitle("TXRD2 Sponsor Optimizer")
     
-    def set_sponsor_flag(self, s):
-        print(s)
+    def set_sponsor_flag(self, state, id):
+        self.sponsor_flags[id] = 1 if state == Qt.Checked else 0
 
 class SlotGroupBox(QGroupBox):
     def __init__(self, title, sponsor_name="") -> None:
@@ -155,6 +152,15 @@ class SlotGroupBox(QGroupBox):
         self.layout.addWidget(self.text)
         self.setLayout(self.layout)
 
+class SponsorCheckBox(QCheckBox):
+    def __init__(self, parent, name, id) -> None:
+        super().__init__(parent)
+        self.setText(name)
+        self.name = name
+        self.id = id
+    
+    def get_id(self):
+        return self.id
 
 # inits the UI
 app = QApplication(sys.argv)
